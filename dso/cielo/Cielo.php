@@ -284,7 +284,7 @@ class Cielo {
 	}
 
 	/**
-	 * @brief	Cria um objeto de requisição de transacao
+	 * @brief	Cria um objeto de requisição de transacao com pagamento pelo ambiente da cielo
 	 * @details Constroi um objeto de requisição de transação para autenticação
 	 * @param	string $creditCard Tipo do cartão
 	 * @param	string $orderNumber Número identificador do pedido
@@ -302,6 +302,7 @@ class Cielo {
 	 * @throws	UnexpectedValueException Se $formaPagamento for 1 (Crédito à Vista) ou A (Débito) e o número de parcelas
 	 * for diferente de 1
 	 */
+	 
 	final public function buildTransactionRequest( $creditCard , $orderNumber , $orderValue , $paymentProduct , $parcels = 1 , $freeField = null ) {
 		if ( ( ( $paymentProduct == PaymentProduct::ONE_TIME_PAYMENT ) || ( $paymentProduct == PaymentProduct::DEBIT ) ) && ( $parcels != 1 ) ) {
 			throw new UnexpectedValueException( 'Quando a forma de pagamento é Crédito à vista ou Débito, o número de parcelas deve ser 1' );
@@ -309,6 +310,56 @@ class Cielo {
 			if ( is_int( $orderValue ) || is_float( $orderValue ) ) {
 				$this->transaction = new TransactionRequest( $this->getHTTPRequester() );
 				$this->transaction->addNode( new EcDataNode( $this->getAffiliationCode() , $this->getAffiliationKey() ) );
+				$this->transaction->addNode( new OrderDataNode( $orderNumber , $orderValue ) );
+				$this->transaction->addNode( new PaymentMethodNode( $paymentProduct , $parcels , $creditCard ) );
+				$this->transaction->setReturnURL( $this->getReturnURL() );
+				$this->transaction->setCapture( $this->automaticCapture );
+
+				if (  !is_null( $freeField ) ) {
+					$this->transaction->setFreeField( $freeField );
+				}
+
+				$this->transaction->setURL( $this->cieloURL );
+
+				return $this->transaction;
+			} else {
+				throw new UnexpectedValueException( sprintf( 'O valor do pedido deve ser numérico, %s foi dado.' , gettype( $orderValue ) ) );
+			}
+		}
+	}
+
+	 /**
+	 * @brief	Cria um objeto de requisição de transacao com pagamento pelo ambiente da loja
+	 * @details Constroi um objeto de requisição de transação para autenticação
+	 * @param	string $creditCard Tipo do cartão
+	 * @param	string $cardNumber Número do cartão de crédito
+	 * @param	integer $cardExpiration Data de expiração do cartão no formato <b>yyyymm</b>
+	 * @param	integer $indicator Indicador do código de segurança
+	 * @param	integer $securityCode Código de segurança do cartão
+	 * @param	string $orderNumber Número identificador do pedido
+	 * @param	integer $orderValue Valor do pedido
+	 * @param	string $paymentProduct Forma de pagamento do pedido, pode ser uma das seguintes:
+	 * @li	PaymentMethod::ONE_TIME_PAYMENT - <b>1</b> - Crédito à Vista
+	 * @li	PaymentMethod::INSTALLMENTS_BY_AFFILIATED_MERCHANTS - <b>2</b> - Parcelado pela loja
+	 * @li	PaymentMethod::INSTALLMENTS_BY_CARD_ISSUERS - <b>3</b> - Parcelado pela administradora
+	 * @li	PaymentMethod::DEBIT - <b>A</b> - Débito
+	 * @param $parcels integer Número de parcelas do pedido.
+	 * @attention Se $formaPagamento for 1 (Crédito à Vista) ou A (Débito), $parcelas precisa, <b>necessariamente</b>
+	 * ser igual a <b>1</b>
+	 * @param	string $freeField Um valor qualquer que poderá ser enviado à Cielo para ser resgatado posteriormente
+	 * @return	TransactionRequest
+	 * @throws	UnexpectedValueException Se $formaPagamento for 1 (Crédito à Vista) ou A (Débito) e o número de parcelas
+	 * for diferente de 1
+	 */
+	
+	final public function buildTransactionRequestAu( $creditCard , $cardNumber , $cardExpiration , $indicator , $securityCode , $orderNumber , $orderValue , $paymentProduct , $parcels = 1 , $freeField = null ) {
+		if ( ( ( $paymentProduct == PaymentProduct::ONE_TIME_PAYMENT ) || ( $paymentProduct == PaymentProduct::DEBIT ) ) && ( $parcels != 1 ) ) {
+			throw new UnexpectedValueException( 'Quando a forma de pagamento é Crédito à vista ou Débito, o número de parcelas deve ser 1' );
+		} else {
+			if ( is_int( $orderValue ) || is_float( $orderValue ) ) {
+				$this->transaction = new TransactionRequest( $this->getHTTPRequester() );
+				$this->transaction->addNode( new EcDataNode( $this->getAffiliationCode() , $this->getAffiliationKey() ) );
+				$this->transaction->addNode( new CardDataNodeAu( $cardNumber , $cardExpiration , $indicator , $securityCode ) );
 				$this->transaction->addNode( new OrderDataNode( $orderNumber , $orderValue ) );
 				$this->transaction->addNode( new PaymentMethodNode( $paymentProduct , $parcels , $creditCard ) );
 				$this->transaction->setReturnURL( $this->getReturnURL() );

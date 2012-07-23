@@ -72,7 +72,7 @@ class PaymentMethodNode implements XMLNode {
 			}
 
 			if (  !is_null( $creditCard ) ) {
-				if ( $creditCard == CreditCard::VISA || $creditCard == CreditCard::MASTER_CARD ) {
+				if ( $creditCard == CreditCard::VISA || $creditCard == CreditCard::MASTER_CARD || $creditCard == CreditCard::ELO || $creditCard == CreditCard::DINERS || $creditCard == CreditCard::AMEX || $creditCard == CreditCard::DISCOVER ) {
 					$this->creditCard = $creditCard;
 				} else {
 					throw new UnexpectedValueException( 'Bandeira não reconhecida.' );

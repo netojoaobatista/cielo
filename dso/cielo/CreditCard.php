@@ -11,6 +11,7 @@
  * @interface	CreditCard
  */
 interface CreditCard {
+
 	/**
 	 * Cartão Visa
 	 */
@@ -20,4 +21,25 @@ interface CreditCard {
 	 * Cartão MarterCard
 	 */
 	const MASTER_CARD = 'mastercard';
+
+	/**
+	 * Cartão Elo
+	 */
+	const ELO = 'elo';
+
+	/**
+	 * Cartão American Express
+	 */
+	const AMEX = 'amex';
+
+	/**
+	 * Cartão Diners Club
+	 */
+	const DINERS = 'diners';
+
+	/**
+	 * Cartão Discover
+	 */
+	const DISCOVER = 'discover';
+
 }

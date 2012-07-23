@@ -46,16 +46,16 @@ final class ECI {
 	 * @throws	UnexpectedValueException Se o ECI não for conhecido
 	 */
 	public static function value( $indicator , $flag ) {
-		if ( $flag == CreditCard::VISA || $flag == CreditCard::MASTER_CARD ) {
+		if ( $flag == CreditCard::VISA || $flag == CreditCard::MASTER_CARD || $flag == CreditCard::ELO || $flag == CreditCard::AMEX || $flag == CreditCard::DINERS || $flag == CreditCard::DISCOVER) {
 			switch ( $indicator ) {
 				case ECI::AUTHENTICATED :
-					return $flag == CreditCard::VISA ? 5 : 2;
+					return $flag == CreditCard::VISA ? 5 : ($flag == CreditCard::MASTER_CARD ? 2 : '');
 				case ECI::WITHOUT_AUTHENTICATION :
-					return $flag == CreditCard::VISA ? 6 : 1;
+					return $flag == CreditCard::VISA ? 6 : ($flag == CreditCard::MASTER_CARD ? 1 : '');
 				case ECI::UNAUTHENTICATED :
-					return $flag == CreditCard::VISA ? 7 : 0;
+					return $flag == CreditCard::VISA ? 7 : ($flag == CreditCard::MASTER_CARD ? 0 : '');
 				case ECI::AFFILIATED_DID_NOT_SEND_AUTHENTICATION :
-					return $flag == CreditCard::VISA ? 7 : 0;
+					return $flag == CreditCard::MASTER_CARD ? 0 : 7;
 				default :
 					throw new UnexpectedValueException( 'Indicador de segurança desconhecido' );
 			}
